@@ -7,14 +7,11 @@ import { ErrorMessage } from '@hookform/error-message';
 
 export default function Form() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [address, setAddress] = useState({
-    city: '',
-    address: '',
-  });
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { isSubmitting, errors },
   } = useForm();
 
@@ -29,11 +26,8 @@ export default function Form() {
     axios
       .get(`https://brasilapi.com.br/api/cep/v2/${zipcodeFromInput}`)
       .then((res) => {
-        console.log(res.data);
-        setAddress({
-          address: `${res.data.street}, ${res.data.neighborhood}`,
-          city: `${res.data.city}, ${res.data.state}`,
-        });
+        setValue('address', `${res.data.street}, ${res.data.neighborhood}`);
+        setValue('city', `${res.data.city}, ${res.data.state}`);
       })
       .catch((err) => {
         console.log(err.response.data);
@@ -42,10 +36,7 @@ export default function Form() {
 
   async function onSubmit(data: FieldValues) {
     await axios
-      .post(`https://apis.codante.io/api/register-user/register`, {
-        ...data,
-        ...address,
-      })
+      .post(`https://apis.codante.io/api/register-user/register`, data)
       .then((res) => console.log(res.data))
       .catch((err) => console.log(err.response.data));
   }
@@ -222,9 +213,13 @@ export default function Form() {
           className='disabled:bg-slate-200'
           type='text'
           id='address'
-          value={address.address}
+          // value={address.street}
+          {...register('address', { required: requiredMessage })}
           disabled
         />
+        <p className='text-xs text-red-400 mt-1'>
+          <ErrorMessage errors={errors} name='address' />
+        </p>
       </div>
 
       {/*  */}
@@ -234,9 +229,13 @@ export default function Form() {
           className='disabled:bg-slate-200'
           type='text'
           id='city'
-          value={address.city}
+          // value={address.city}
+          {...register('city', { required: requiredMessage })}
           disabled
         />
+        <p className='text-xs text-red-400 mt-1'>
+          <ErrorMessage errors={errors} name='city' />
+        </p>
       </div>
 
       {/* terms and conditions input */}
