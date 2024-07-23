@@ -12,6 +12,8 @@ export default function Form() {
     register,
     handleSubmit,
     setValue,
+    setError,
+    clearErrors,
     formState: { isSubmitting, errors },
   } = useForm();
 
@@ -19,7 +21,7 @@ export default function Form() {
 
   const requiredMessage = 'Campo obrigatório';
 
-  function handleZipcodeBlur(ev: React.FocusEvent<HTMLInputElement>) {
+  function handleZipcodeChange(ev: React.FocusEvent<HTMLInputElement>) {
     const zipcodeFromInput = ev.target.value;
     if (!zipcodeFromInput.match(/^\d{5}-\d{3}$/)) return;
 
@@ -28,9 +30,14 @@ export default function Form() {
       .then((res) => {
         setValue('address', `${res.data.street}, ${res.data.neighborhood}`);
         setValue('city', `${res.data.city}, ${res.data.state}`);
+        clearErrors('zipcode');
       })
       .catch((err) => {
         console.log(err.response.data);
+        setError('zipcode', {
+          type: 'manual',
+          message: err.response.data.message,
+        });
       });
   }
 
@@ -38,7 +45,13 @@ export default function Form() {
     await axios
       .post(`https://apis.codante.io/api/register-user/register`, data)
       .then((res) => console.log(res.data))
-      .catch((err) => console.log(err.response.data));
+      .catch((err) => {
+        console.log(err.response.data);
+        const errors = err.response.data.errors;
+        for (const key in errors) {
+          setError(key, { type: 'manual', message: errors[key] });
+        }
+      });
   }
 
   return (
@@ -202,7 +215,7 @@ export default function Form() {
               value: /^\d{5}-\d{3}$/,
               message: 'CEP inválido',
             },
-            onBlur: handleZipcodeBlur,
+            onChange: handleZipcodeChange,
           })}
         />
         <p className='text-xs text-red-400 mt-1'>
@@ -217,7 +230,6 @@ export default function Form() {
           className='disabled:bg-slate-200'
           type='text'
           id='address'
-          // value={address.street}
           {...register('address', { required: requiredMessage })}
           disabled
         />
