@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { FieldValues, useForm } from 'react-hook-form';
 import { useHookFormMask } from 'use-mask-input';
 import { UserRegister, userRegisterSchema } from '../schema';
+import toast from 'react-hot-toast';
 
 export default function FormWithZod() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -53,10 +54,14 @@ export default function FormWithZod() {
     await axios
       .post(`https://apis.codante.io/api/register-user/register`, data)
       .then((res) => {
+        toast.success('Usuário cadastrado com sucesso!');
         console.log(res.data);
         reset();
       })
       .catch((err) => {
+        toast.error(
+          'Erro ao cadastrar o usuário: ' + err.response.data.message
+        );
         console.log(err.response.data);
         const errors = err.response.data.errors;
         for (const key in errors) {

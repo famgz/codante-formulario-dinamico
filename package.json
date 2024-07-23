@@ -17,6 +17,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.52.1",
+    "react-hot-toast": "^2.4.1",
     "use-mask-input": "^3.3.8",
     "zod": "^3.23.8"
   },
