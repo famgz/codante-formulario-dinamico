@@ -16,6 +16,7 @@ export default function FormWithZod() {
     setValue,
     setError,
     clearErrors,
+    resetField,
     formState: { isSubmitting, errors },
   } = useForm<UserRegister>({ resolver: zodResolver(userRegisterSchema) }); // adding the type <UserRegister> makes it easier to use the methods
 
@@ -23,14 +24,18 @@ export default function FormWithZod() {
 
   function handleZipcodeChange(ev: React.FocusEvent<HTMLInputElement>) {
     const zipcode = ev.target.value;
-    if (!zipcode.match(/^\d{5}-\d{3}$/)) return;
+    if (!zipcode.match(/^\d{5}-\d{3}$/)) {
+      resetField('address');
+      resetField('city');
+      return;
+    }
 
     axios
       .get(`https://brasilapi.com.br/api/cep/v2/${zipcode}`)
       .then((res) => {
         setValue('address', `${res.data.street}, ${res.data.neighborhood}`);
         setValue('city', `${res.data.city}, ${res.data.state}`);
-        clearErrors('zipcode');
+        clearErrors(['zipcode', 'address', 'city']);
       })
       .catch((err) => {
         console.log(err.response.data);
@@ -38,6 +43,8 @@ export default function FormWithZod() {
           type: 'manual',
           message: err.response.data.message,
         });
+        resetField('address');
+        resetField('city');
       });
   }
 

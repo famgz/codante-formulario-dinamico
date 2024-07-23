@@ -31,14 +31,9 @@ export const userRegisterSchema = z
     address: z.string().min(1, requiredMessage('endereço')),
     terms: z.boolean({ message: 'Voce precisa aceitar os termos de uso' }),
   })
-  .refine(
-    (data) => {
-      data.password === data.password_confirmation;
-    },
-    {
-      message: 'As senhas devem coincidir',
-      path: ['password_confirmation'],
-    }
-  );
+  .refine((data) => data.password === data.password_confirmation, {
+    message: 'As senhas devem coincidir',
+    path: ['password_confirmation'],
+  });
 
 export type UserRegister = z.infer<typeof userRegisterSchema>;
