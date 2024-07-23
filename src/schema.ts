@@ -29,7 +29,9 @@ export const userRegisterSchema = z
       .regex(/^\d{5}-\d{3}$/, 'CEP inválido'),
     city: z.string().min(1, requiredMessage('cidade')),
     address: z.string().min(1, requiredMessage('endereço')),
-    terms: z.boolean({ message: 'Voce precisa aceitar os termos de uso' }),
+    terms: z.literal<boolean>(true, {
+      errorMap: () => ({ message: 'Voce precisa aceitar os termos de uso' }),
+    }),
   })
   .refine((data) => data.password === data.password_confirmation, {
     message: 'As senhas devem coincidir',
