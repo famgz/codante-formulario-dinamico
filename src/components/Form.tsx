@@ -9,7 +9,7 @@ export default function Form() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [address, setAddress] = useState({
     city: '',
-    street: '',
+    address: '',
   });
 
   const {
@@ -28,12 +28,13 @@ export default function Form() {
 
     axios
       .get(`https://brasilapi.com.br/api/cep/v2/${zipcodeFromInput}`)
-      .then((res) =>
+      .then((res) => {
+        console.log(res.data);
         setAddress({
-          city: res.data.city,
-          street: res.data.street,
-        })
-      )
+          address: `${res.data.street}, ${res.data.neighborhood}`,
+          city: `${res.data.city}, ${res.data.state}`,
+        });
+      })
       .catch((err) => {
         console.log(err.response.data);
       });
@@ -221,7 +222,7 @@ export default function Form() {
           className='disabled:bg-slate-200'
           type='text'
           id='address'
-          value={address.street}
+          value={address.address}
           disabled
         />
       </div>
