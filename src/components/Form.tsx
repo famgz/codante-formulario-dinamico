@@ -1,8 +1,8 @@
-import { EyeIcon } from 'lucide-react';
-import { useState } from 'react';
-import { EyeOffIcon } from 'lucide-react';
-import { withMask } from 'use-mask-input';
 import axios from 'axios';
+import { EyeIcon, EyeOffIcon, LoaderCircleIcon } from 'lucide-react';
+import { useState } from 'react';
+import { FieldValues, useForm } from 'react-hook-form';
+import { withMask } from 'use-mask-input';
 
 export default function Form() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -10,6 +10,12 @@ export default function Form() {
     city: '',
     street: '',
   });
+
+  const {
+    register,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm();
 
   function handleZipcodeBlur(ev: React.FocusEvent<HTMLInputElement>) {
     const zipcode = ev.target.value;
@@ -27,26 +33,36 @@ export default function Form() {
       });
   }
 
+  async function onSubmit(data: FieldValues) {
+    await axios
+      .post(`https://apis.codante.io/api/register-user/register`, data)
+      .then((res) => console.log(res.data))
+      .catch((err) => console.log(err.response.data));
+  }
+
   return (
-    <form className='space-y-4'>
+    // wrap custom submit function within react hook form submit function
+    <form className='space-y-4' onSubmit={handleSubmit(onSubmit)}>
       <div className=''>
         <label htmlFor='name'>Nome Completo</label>
-        <input type='text' id='name' />
+        <input type='text' id='name' {...register('name')} />
         {/* Sugestão de exibição de erro de validação */}
         <div className='min-h-4'>
           <p className='text-xs text-red-400 mt-1'>O nome é obrigatório.</p>
         </div>
       </div>
-
       <div className=''>
         <label htmlFor='email'>E-mail</label>
-        <input className='' type='email' id='email' />
+        <input className='' type='email' id='email' {...register('email')} />
       </div>
-
       <div className=''>
         <label htmlFor='password'>Senha</label>
         <div className='relative'>
-          <input type={isPasswordVisible ? 'text' : 'password'} id='password' />
+          <input
+            type={isPasswordVisible ? 'text' : 'password'}
+            id='password'
+            {...register('password')}
+          />
           <button
             type='button'
             className='absolute right-3 top-3 text-slate-600'
@@ -59,7 +75,6 @@ export default function Form() {
           </button>
         </div>
       </div>
-
       <div className=''>
         <label htmlFor='confirm-password'>Confirmar Senha</label>
         <div className='relative'>
@@ -79,17 +94,14 @@ export default function Form() {
           </button>
         </div>
       </div>
-
       <div className=''>
         <label htmlFor='phone'>Telefone Celular</label>
         <input type='text' id='phone' ref={withMask('(99) 99999-9999')} />
       </div>
-
       <div className=''>
         <label htmlFor='cpf'>CPF</label>
         <input type='text' id='cpf' ref={withMask('cpf')} />
       </div>
-
       <div className=''>
         <label htmlFor='cep'>CEP</label>
         <input
@@ -99,7 +111,6 @@ export default function Form() {
           onBlur={handleZipcodeBlur}
         />
       </div>
-
       <div className=''>
         <label htmlFor='address'>Endereço</label>
         <input
@@ -110,7 +121,6 @@ export default function Form() {
           disabled
         />
       </div>
-
       <div className=''>
         <label htmlFor='city'>Cidade</label>
         <input
@@ -121,7 +131,6 @@ export default function Form() {
           disabled
         />
       </div>
-
       {/* terms and conditions input */}
       <div className=''>
         <input type='checkbox' id='terms' className='mr-2 accent-slate-500' />
@@ -134,11 +143,17 @@ export default function Form() {
           </span>
         </label>
       </div>
-
       <button
         type='submit'
-        className='bg-slate-500 font-semibold text-white w-full rounded-xl p-4 mt-10 hover:bg-slate-600 transition-colors'>
+        className='bg-slate-500 font-semibold text-white w-full rounded-xl p-4 mt-10 hover:bg-slate-600 transition-colors disabled:bg-slate-300 relative'
+        disabled={isSubmitting}>
         Cadastrar
+        {isSubmitting && (
+          <LoaderCircleIcon
+            className='absolute right-4 bottom-4 animate-spin'
+            strokeWidth={3}
+          />
+        )}
       </button>
     </form>
   );
