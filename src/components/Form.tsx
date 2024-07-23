@@ -96,8 +96,8 @@ export default function Form() {
             {...register('password', {
               required: requiredMessage,
               minLength: {
-                value: 6,
-                message: 'A senha deve ter no mínimo 6 caracteres',
+                value: 8,
+                message: 'A senha deve ter no mínimo 8 caracteres',
               },
             })}
           />
@@ -127,8 +127,12 @@ export default function Form() {
             {...register('password_confirmation', {
               required: requiredMessage,
               minLength: {
-                value: 6,
-                message: 'A senha deve ter no mínimo 6 caracteres',
+                value: 8,
+                message: 'A senha deve ter no mínimo 8 caracteres',
+              },
+              validate: (value, formValues) => {
+                if (value === formValues.password) return true;
+                return 'As senhas devem coincidir';
               },
             })}
           />
