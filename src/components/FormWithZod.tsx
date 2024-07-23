@@ -5,7 +5,7 @@ import { FieldValues, useForm } from 'react-hook-form';
 import { useHookFormMask } from 'use-mask-input';
 import { ErrorMessage } from '@hookform/error-message';
 
-export default function Form() {
+export default function FormWithZod() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const {
