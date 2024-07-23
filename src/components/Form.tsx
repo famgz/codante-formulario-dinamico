@@ -3,6 +3,7 @@ import { EyeIcon, EyeOffIcon, LoaderCircleIcon } from 'lucide-react';
 import { useState } from 'react';
 import { FieldValues, useForm } from 'react-hook-form';
 import { useHookFormMask } from 'use-mask-input';
+import { ErrorMessage } from '@hookform/error-message';
 
 export default function Form() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -40,7 +41,10 @@ export default function Form() {
 
   async function onSubmit(data: FieldValues) {
     await axios
-      .post(`https://apis.codante.io/api/register-user/register`, data)
+      .post(`https://apis.codante.io/api/register-user/register`, {
+        ...data,
+        ...address,
+      })
       .then((res) => console.log(res.data))
       .catch((err) => console.log(err.response.data));
   }
@@ -66,7 +70,7 @@ export default function Form() {
           })}
         />
         <p className='text-xs text-red-400 mt-1'>
-          {errors.name?.message as string}
+          <ErrorMessage errors={errors} name='name' />
         </p>
       </div>
 
@@ -86,7 +90,7 @@ export default function Form() {
           })}
         />
         <p className='text-xs text-red-400 mt-1'>
-          {errors.email?.message as string}
+          <ErrorMessage errors={errors} name='email' />
         </p>
       </div>
 
@@ -117,7 +121,7 @@ export default function Form() {
           </button>
         </div>
         <p className='text-xs text-red-400 mt-1'>
-          {errors.password?.message as string}
+          <ErrorMessage errors={errors} name='password' />
         </p>
       </div>
 
@@ -148,7 +152,7 @@ export default function Form() {
           </button>
         </div>
         <p className='text-xs text-red-400 mt-1'>
-          {errors.password_confirmation?.message as string}
+          <ErrorMessage errors={errors} name='password_confirmation' />
         </p>
       </div>
 
@@ -167,7 +171,7 @@ export default function Form() {
           })}
         />
         <p className='text-xs text-red-400 mt-1'>
-          {errors.phone?.message as string}
+          <ErrorMessage errors={errors} name='phone' />
         </p>
       </div>
 
@@ -186,7 +190,7 @@ export default function Form() {
           })}
         />
         <p className='text-xs text-red-400 mt-1'>
-          {errors.cpf?.message as string}
+          <ErrorMessage errors={errors} name='cpf' />
         </p>
       </div>
 
@@ -206,7 +210,7 @@ export default function Form() {
           })}
         />
         <p className='text-xs text-red-400 mt-1'>
-          {errors.zipcode?.message as string}
+          <ErrorMessage errors={errors} name='zipcode' />
         </p>
       </div>
 
@@ -240,7 +244,7 @@ export default function Form() {
           type='checkbox'
           id='terms'
           className='mr-2 accent-slate-500'
-          {...register('terms', { required: '' })}
+          {...register('terms', { required: requiredMessage })}
         />
         <label
           className='text-sm  font-light text-slate-500 mb-1 inline'
@@ -251,7 +255,7 @@ export default function Form() {
           </span>
         </label>
         <p className='text-xs text-red-400 mt-1'>
-          {errors.terms?.message as string}
+          <ErrorMessage errors={errors} name='terms' />
         </p>
       </div>
 
