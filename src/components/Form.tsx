@@ -1,6 +1,7 @@
 import { EyeIcon } from 'lucide-react';
 import { useState } from 'react';
 import { EyeOffIcon } from 'lucide-react';
+import { withMask } from 'use-mask-input';
 
 export default function Form() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -60,17 +61,17 @@ export default function Form() {
 
       <div className=''>
         <label htmlFor='phone'>Telefone Celular</label>
-        <input type='text' id='phone' />
+        <input type='text' id='phone' ref={withMask('(99) 99999-9999')} />
       </div>
 
       <div className=''>
         <label htmlFor='cpf'>CPF</label>
-        <input type='text' id='cpf' />
+        <input type='text' id='cpf' ref={withMask('cpf')} />
       </div>
 
       <div className=''>
         <label htmlFor='cep'>CEP</label>
-        <input type='text' id='cep' />
+        <input type='text' id='cep' ref={withMask('99999-999')} />
       </div>
 
       <div className=''>
