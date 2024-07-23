@@ -16,6 +16,7 @@ export default function FormWithZod() {
     setValue,
     setError,
     clearErrors,
+    reset,
     resetField,
     formState: { isSubmitting, errors },
   } = useForm<UserRegister>({ resolver: zodResolver(userRegisterSchema) }); // adding the type <UserRegister> makes it easier to use the methods
@@ -51,7 +52,10 @@ export default function FormWithZod() {
   async function onSubmit(data: FieldValues) {
     await axios
       .post(`https://apis.codante.io/api/register-user/register`, data)
-      .then((res) => console.log(res.data))
+      .then((res) => {
+        console.log(res.data);
+        reset();
+      })
       .catch((err) => {
         console.log(err.response.data);
         const errors = err.response.data.errors;
