@@ -2,9 +2,30 @@ import { EyeIcon } from 'lucide-react';
 import { useState } from 'react';
 import { EyeOffIcon } from 'lucide-react';
 import { withMask } from 'use-mask-input';
+import axios from 'axios';
 
 export default function Form() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [address, setAddress] = useState({
+    city: '',
+    street: '',
+  });
+
+  function handleZipcodeBlur(ev: React.FocusEvent<HTMLInputElement>) {
+    const zipcode = ev.target.value;
+
+    axios
+      .get(`https://brasilapi.com.br/api/cep/v2/${zipcode}`)
+      .then((res) =>
+        setAddress({
+          city: res.data.city,
+          street: res.data.street,
+        })
+      )
+      .catch((err) => {
+        console.log(err.response.data);
+      });
+  }
 
   return (
     <form className='space-y-4'>
@@ -71,7 +92,12 @@ export default function Form() {
 
       <div className=''>
         <label htmlFor='cep'>CEP</label>
-        <input type='text' id='cep' ref={withMask('99999-999')} />
+        <input
+          type='text'
+          id='cep'
+          ref={withMask('99999-999')}
+          onBlur={handleZipcodeBlur}
+        />
       </div>
 
       <div className=''>
@@ -80,6 +106,7 @@ export default function Form() {
           className='disabled:bg-slate-200'
           type='text'
           id='address'
+          value={address.street}
           disabled
         />
       </div>
@@ -90,6 +117,7 @@ export default function Form() {
           className='disabled:bg-slate-200'
           type='text'
           id='city'
+          value={address.city}
           disabled
         />
       </div>
