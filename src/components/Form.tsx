@@ -2,7 +2,7 @@ import axios from 'axios';
 import { EyeIcon, EyeOffIcon, LoaderCircleIcon } from 'lucide-react';
 import { useState } from 'react';
 import { FieldValues, useForm } from 'react-hook-form';
-import { withMask } from 'use-mask-input';
+import { useHookFormMask } from 'use-mask-input';
 
 export default function Form() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -14,14 +14,19 @@ export default function Form() {
   const {
     register,
     handleSubmit,
-    formState: { isSubmitting },
+    formState: { isSubmitting, errors },
   } = useForm();
 
+  const registerWithMask = useHookFormMask(register);
+
+  const requiredMessage = 'Campo obrigatório';
+
   function handleZipcodeBlur(ev: React.FocusEvent<HTMLInputElement>) {
-    const zipcode = ev.target.value;
+    const zipcodeFromInput = ev.target.value;
+    if (!zipcodeFromInput.match(/^\d{5}-\d{3}$/)) return;
 
     axios
-      .get(`https://brasilapi.com.br/api/cep/v2/${zipcode}`)
+      .get(`https://brasilapi.com.br/api/cep/v2/${zipcodeFromInput}`)
       .then((res) =>
         setAddress({
           city: res.data.city,
@@ -45,23 +50,60 @@ export default function Form() {
     <form className='space-y-4' onSubmit={handleSubmit(onSubmit)}>
       <div className=''>
         <label htmlFor='name'>Nome Completo</label>
-        <input type='text' id='name' {...register('name')} />
-        {/* Sugestão de exibição de erro de validação */}
-        <div className='min-h-4'>
-          <p className='text-xs text-red-400 mt-1'>O nome é obrigatório.</p>
-        </div>
+        <input
+          type='text'
+          id='name'
+          {...register('name', {
+            required: requiredMessage,
+            maxLength: {
+              value: 255,
+              message: 'O nome deve ter no máximo 255 caracteres',
+            },
+            minLength: {
+              value: 3,
+              message: 'O nome deve ter no mínimo 3 caracteres',
+            },
+          })}
+        />
+        <p className='text-xs text-red-400 mt-1'>
+          {errors.name?.message as string}
+        </p>
       </div>
+
+      {/*  */}
       <div className=''>
         <label htmlFor='email'>E-mail</label>
-        <input className='' type='email' id='email' {...register('email')} />
+        <input
+          className=''
+          type='email'
+          id='email'
+          {...register('email', {
+            required: requiredMessage,
+            pattern: {
+              value: /^[a-z0-9._%+_]+@[a-z0-9.-]+\.[a-z]{2,4}$/,
+              message: 'Email inválido',
+            },
+          })}
+        />
+        <p className='text-xs text-red-400 mt-1'>
+          {errors.email?.message as string}
+        </p>
       </div>
+
+      {/*  */}
       <div className=''>
         <label htmlFor='password'>Senha</label>
         <div className='relative'>
           <input
             type={isPasswordVisible ? 'text' : 'password'}
             id='password'
-            {...register('password')}
+            {...register('password', {
+              required: requiredMessage,
+              minLength: {
+                value: 6,
+                message: 'A senha deve ter no mínimo 6 caracteres',
+              },
+            })}
           />
           <button
             type='button'
@@ -74,13 +116,25 @@ export default function Form() {
             )}
           </button>
         </div>
+        <p className='text-xs text-red-400 mt-1'>
+          {errors.password?.message as string}
+        </p>
       </div>
+
+      {/*  */}
       <div className=''>
-        <label htmlFor='confirm-password'>Confirmar Senha</label>
+        <label htmlFor='password_confirmation'>Confirmar Senha</label>
         <div className='relative'>
           <input
             type={isPasswordVisible ? 'text' : 'password'}
-            id='confirm-password'
+            id='password_confirmation'
+            {...register('password_confirmation', {
+              required: requiredMessage,
+              minLength: {
+                value: 6,
+                message: 'A senha deve ter no mínimo 6 caracteres',
+              },
+            })}
           />
           <button
             type='button'
@@ -93,24 +147,70 @@ export default function Form() {
             )}
           </button>
         </div>
+        <p className='text-xs text-red-400 mt-1'>
+          {errors.password_confirmation?.message as string}
+        </p>
       </div>
+
+      {/*  */}
       <div className=''>
         <label htmlFor='phone'>Telefone Celular</label>
-        <input type='text' id='phone' ref={withMask('(99) 99999-9999')} />
-      </div>
-      <div className=''>
-        <label htmlFor='cpf'>CPF</label>
-        <input type='text' id='cpf' ref={withMask('cpf')} />
-      </div>
-      <div className=''>
-        <label htmlFor='cep'>CEP</label>
         <input
           type='text'
-          id='cep'
-          ref={withMask('99999-999')}
-          onBlur={handleZipcodeBlur}
+          id='phone'
+          {...registerWithMask('phone', '(99) 99999-9999', {
+            required: requiredMessage,
+            pattern: {
+              value: /^\(\d{2}\) \d{5}-\d{4}$/,
+              message: 'Telefone inválido',
+            },
+          })}
         />
+        <p className='text-xs text-red-400 mt-1'>
+          {errors.phone?.message as string}
+        </p>
       </div>
+
+      {/*  */}
+      <div className=''>
+        <label htmlFor='cpf'>CPF</label>
+        <input
+          type='text'
+          id='cpf'
+          {...registerWithMask('cpf', 'cpf', {
+            required: requiredMessage,
+            pattern: {
+              value: /^\d{3}\.\d{3}\.\d{3}-\d{2}$/,
+              message: 'CPF inválido',
+            },
+          })}
+        />
+        <p className='text-xs text-red-400 mt-1'>
+          {errors.cpf?.message as string}
+        </p>
+      </div>
+
+      {/*  */}
+      <div className=''>
+        <label htmlFor='zipcode'>CEP</label>
+        <input
+          type='text'
+          id='zipcode'
+          {...registerWithMask('zipcode', '99999-999', {
+            required: requiredMessage,
+            pattern: {
+              value: /^\d{5}-\d{3}$/,
+              message: 'CEP inválido',
+            },
+            onBlur: handleZipcodeBlur,
+          })}
+        />
+        <p className='text-xs text-red-400 mt-1'>
+          {errors.zipcode?.message as string}
+        </p>
+      </div>
+
+      {/*  */}
       <div className=''>
         <label htmlFor='address'>Endereço</label>
         <input
@@ -121,6 +221,8 @@ export default function Form() {
           disabled
         />
       </div>
+
+      {/*  */}
       <div className=''>
         <label htmlFor='city'>Cidade</label>
         <input
@@ -131,9 +233,15 @@ export default function Form() {
           disabled
         />
       </div>
+
       {/* terms and conditions input */}
       <div className=''>
-        <input type='checkbox' id='terms' className='mr-2 accent-slate-500' />
+        <input
+          type='checkbox'
+          id='terms'
+          className='mr-2 accent-slate-500'
+          {...register('terms', { required: '' })}
+        />
         <label
           className='text-sm  font-light text-slate-500 mb-1 inline'
           htmlFor='terms'>
@@ -142,7 +250,11 @@ export default function Form() {
             termos e condições
           </span>
         </label>
+        <p className='text-xs text-red-400 mt-1'>
+          {errors.terms?.message as string}
+        </p>
       </div>
+
       <button
         type='submit'
         className='bg-slate-500 font-semibold text-white w-full rounded-xl p-4 mt-10 hover:bg-slate-600 transition-colors disabled:bg-slate-300 relative'
