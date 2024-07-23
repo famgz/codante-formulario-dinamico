@@ -1,9 +1,11 @@
+import { ErrorMessage } from '@hookform/error-message';
+import { zodResolver } from '@hookform/resolvers/zod';
 import axios from 'axios';
 import { EyeIcon, EyeOffIcon, LoaderCircleIcon } from 'lucide-react';
 import { useState } from 'react';
 import { FieldValues, useForm } from 'react-hook-form';
 import { useHookFormMask } from 'use-mask-input';
-import { ErrorMessage } from '@hookform/error-message';
+import { UserRegister, userRegisterSchema } from '../schema';
 
 export default function FormWithZod() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -15,18 +17,16 @@ export default function FormWithZod() {
     setError,
     clearErrors,
     formState: { isSubmitting, errors },
-  } = useForm();
+  } = useForm<UserRegister>({ resolver: zodResolver(userRegisterSchema) }); // adding the type <UserRegister> makes it easier to use the methods
 
   const registerWithMask = useHookFormMask(register);
 
-  const requiredMessage = 'Campo obrigatório';
-
   function handleZipcodeChange(ev: React.FocusEvent<HTMLInputElement>) {
-    const zipcodeFromInput = ev.target.value;
-    if (!zipcodeFromInput.match(/^\d{5}-\d{3}$/)) return;
+    const zipcode = ev.target.value;
+    if (!zipcode.match(/^\d{5}-\d{3}$/)) return;
 
     axios
-      .get(`https://brasilapi.com.br/api/cep/v2/${zipcodeFromInput}`)
+      .get(`https://brasilapi.com.br/api/cep/v2/${zipcode}`)
       .then((res) => {
         setValue('address', `${res.data.street}, ${res.data.neighborhood}`);
         setValue('city', `${res.data.city}, ${res.data.state}`);
@@ -49,7 +49,10 @@ export default function FormWithZod() {
         console.log(err.response.data);
         const errors = err.response.data.errors;
         for (const key in errors) {
-          setError(key, { type: 'manual', message: errors[key] });
+          setError(key as keyof UserRegister, {
+            type: 'manual',
+            message: errors[key],
+          });
         }
       });
   }
@@ -59,21 +62,7 @@ export default function FormWithZod() {
     <form className='space-y-4' onSubmit={handleSubmit(onSubmit)}>
       <div className=''>
         <label htmlFor='name'>Nome Completo</label>
-        <input
-          type='text'
-          id='name'
-          {...register('name', {
-            required: requiredMessage,
-            maxLength: {
-              value: 255,
-              message: 'O nome deve ter no máximo 255 caracteres',
-            },
-            minLength: {
-              value: 3,
-              message: 'O nome deve ter no mínimo 3 caracteres',
-            },
-          })}
-        />
+        <input type='text' id='name' {...register('name')} />
         <p className='text-xs text-red-400 mt-1'>
           <ErrorMessage errors={errors} name='name' />
         </p>
@@ -82,18 +71,7 @@ export default function FormWithZod() {
       {/*  */}
       <div className=''>
         <label htmlFor='email'>E-mail</label>
-        <input
-          className=''
-          type='email'
-          id='email'
-          {...register('email', {
-            required: requiredMessage,
-            pattern: {
-              value: /^[a-z0-9._%+_]+@[a-z0-9.-]+\.[a-z]{2,4}$/,
-              message: 'Email inválido',
-            },
-          })}
-        />
+        <input className='' type='email' id='email' {...register('email')} />
         <p className='text-xs text-red-400 mt-1'>
           <ErrorMessage errors={errors} name='email' />
         </p>
@@ -106,13 +84,7 @@ export default function FormWithZod() {
           <input
             type={isPasswordVisible ? 'text' : 'password'}
             id='password'
-            {...register('password', {
-              required: requiredMessage,
-              minLength: {
-                value: 8,
-                message: 'A senha deve ter no mínimo 8 caracteres',
-              },
-            })}
+            {...register('password')}
           />
           <button
             type='button'
@@ -137,17 +109,7 @@ export default function FormWithZod() {
           <input
             type={isPasswordVisible ? 'text' : 'password'}
             id='password_confirmation'
-            {...register('password_confirmation', {
-              required: requiredMessage,
-              minLength: {
-                value: 8,
-                message: 'A senha deve ter no mínimo 8 caracteres',
-              },
-              validate: (value, formValues) => {
-                if (value === formValues.password) return true;
-                return 'As senhas devem coincidir';
-              },
-            })}
+            {...register('password_confirmation')}
           />
           <button
             type='button'
@@ -171,13 +133,7 @@ export default function FormWithZod() {
         <input
           type='text'
           id='phone'
-          {...registerWithMask('phone', '(99) 99999-9999', {
-            required: requiredMessage,
-            pattern: {
-              value: /^\(\d{2}\) \d{5}-\d{4}$/,
-              message: 'Telefone inválido',
-            },
-          })}
+          {...registerWithMask('phone', '(99) 99999-9999')}
         />
         <p className='text-xs text-red-400 mt-1'>
           <ErrorMessage errors={errors} name='phone' />
@@ -187,17 +143,7 @@ export default function FormWithZod() {
       {/*  */}
       <div className=''>
         <label htmlFor='cpf'>CPF</label>
-        <input
-          type='text'
-          id='cpf'
-          {...registerWithMask('cpf', 'cpf', {
-            required: requiredMessage,
-            pattern: {
-              value: /^\d{3}\.\d{3}\.\d{3}-\d{2}$/,
-              message: 'CPF inválido',
-            },
-          })}
-        />
+        <input type='text' id='cpf' {...registerWithMask('cpf', 'cpf')} />
         <p className='text-xs text-red-400 mt-1'>
           <ErrorMessage errors={errors} name='cpf' />
         </p>
@@ -210,11 +156,6 @@ export default function FormWithZod() {
           type='text'
           id='zipcode'
           {...registerWithMask('zipcode', '99999-999', {
-            required: requiredMessage,
-            pattern: {
-              value: /^\d{5}-\d{3}$/,
-              message: 'CEP inválido',
-            },
             onChange: handleZipcodeChange,
           })}
         />
@@ -230,7 +171,7 @@ export default function FormWithZod() {
           className='disabled:bg-slate-200'
           type='text'
           id='address'
-          {...register('address', { required: requiredMessage })}
+          {...register('address')}
           disabled
         />
         <p className='text-xs text-red-400 mt-1'>
@@ -245,8 +186,7 @@ export default function FormWithZod() {
           className='disabled:bg-slate-200'
           type='text'
           id='city'
-          // value={address.city}
-          {...register('city', { required: requiredMessage })}
+          {...register('city')}
           disabled
         />
         <p className='text-xs text-red-400 mt-1'>
@@ -260,7 +200,7 @@ export default function FormWithZod() {
           type='checkbox'
           id='terms'
           className='mr-2 accent-slate-500'
-          {...register('terms', { required: requiredMessage })}
+          {...register('terms')}
         />
         <label
           className='text-sm  font-light text-slate-500 mb-1 inline'
